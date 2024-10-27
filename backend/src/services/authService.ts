@@ -8,6 +8,7 @@ import {
   JWT_SECRET,
   JWT_EXPIRES_IN,
   JWT_REFRESH_EXPIRES_IN,
+  REFRESH_TOKEN_LIFETIME,
 } from "../utils/constants";
 
 export const generateToken = (id: string) => {
@@ -15,7 +16,9 @@ export const generateToken = (id: string) => {
 };
 
 export const generateRefreshToken = (id: string) => {
-  return jwt.sign({ id }, JWT_SECRET, { expiresIn: JWT_REFRESH_EXPIRES_IN });
+  return jwt.sign({ id, createdAt: Date.now() }, JWT_SECRET, {
+    expiresIn: JWT_REFRESH_EXPIRES_IN,
+  });
 };
 
 export const verifyToken = (token: string) => {
@@ -48,8 +51,8 @@ export const verifyAndRefreshToken = async (
         } else {
           user = await User.findById(decoded.id);
         }
-      } catch (err) {
-        //return next(err);
+      } catch (err: any) {
+        if (err.name !== "TokenExpiredError") next(err);
       }
     }
 
@@ -62,15 +65,25 @@ export const verifyAndRefreshToken = async (
         } else {
           user = await User.findById(decoded.id);
         }
+        if (user) {
+          const refreshTokenAge =
+            Math.floor(Date.now() / 1000) - decoded.createdAt;
+
+          const newToken = generateToken(user._id);
+          let newRefreshToken = refreshToken;
+
+          if (refreshTokenAge >= REFRESH_TOKEN_LIFETIME) {
+            newRefreshToken = generateRefreshToken(user._id);
+          }
+
+          setTokenCookies(res, newToken, newRefreshToken);
+        }
       } catch (err) {
         return next(err);
       }
     }
 
     if (user) {
-      const newToken = generateToken(user._id);
-      const newRefreshToken = generateRefreshToken(user._id);
-      setTokenCookies(res, newToken, newRefreshToken);
       await redisClient.setEx(
         getUserKeyById(user._id),
         CACHE_TTL_SECONDS,

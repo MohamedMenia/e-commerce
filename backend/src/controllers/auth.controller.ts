@@ -53,17 +53,25 @@ export const googleLogin = async (
 
     const payload = ticket.getPayload();
     const googleId = payload?.sub;
+    const email = payload?.email;
+    const username = payload?.name;
+
+    if (!email || !username) {
+      throw new CustomError(
+        "Google login failed: Missing required user information",
+        400
+      );
+    }
 
     let user = await User.findOne({ googleId });
 
     if (!user) {
-      user = new User({ googleId });
+      user = new User({ googleId, email, username });
       await user.save();
     }
 
     const accessToken = generateToken(user._id);
     const refreshToken = generateRefreshToken(user._id);
-
     setTokenCookies(res, accessToken, refreshToken);
 
     successResponse(res, { user }, "Google login successful");
