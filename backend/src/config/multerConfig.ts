@@ -15,6 +15,6 @@ export const uploadProductPhoto = multer({
   storage: getStorage("product_photos"),
 });
 
-export const deletePhoto = (publicId: string) => {
-  cloudinary.uploader.destroy(publicId);
+export const deletePhoto = async (publicId: string) => {
+  await cloudinary.uploader.destroy(publicId);
 };

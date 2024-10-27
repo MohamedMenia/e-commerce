@@ -5,7 +5,8 @@ import { validate } from "../middlewares/validat.middleware";
 import * as validationSchema from "../validations/user.validation";
 import { uploadUserPhoto } from "../config/multerConfig";
 import { verifyAndRefreshToken } from "../services/authService";
-
+import { withRedisClient } from "../middlewares/redisMiddleware";
+import {protectUser} from "../middlewares/user.middleware";
 const router = Router();
 
 // Auth Routes
@@ -16,24 +17,41 @@ router.post(
 );
 router.post(
   "/google-login",
-  validate(validationSchema.loginSchema),
+  validate(validationSchema.googleLoginSchema),
   authController.googleLogin
 );
 router.post("/logout", authController.logout);
 
 // User Routes
 router.post(
-  "/register",
+  "/",
   validate(validationSchema.userSchema),
+  withRedisClient,
   userController.createUser
 );
 router.put(
-  "/update",
+  "/:id",
+  withRedisClient,
   verifyAndRefreshToken,
   uploadUserPhoto.single("photo"),
   validate(validationSchema.updateUserSchema),
+  protectUser,
   userController.updateUser
 );
-router.delete("/delete", verifyAndRefreshToken, userController.deleteUser);
+router.delete(
+  "/:id",
+  withRedisClient,
+  verifyAndRefreshToken,
+  protectUser,
+  userController.deleteUser
+);
+
+router.get(
+  "/:id",
+  withRedisClient,
+  verifyAndRefreshToken,
+  protectUser,
+  userController.getUser
+);
 
 export default router;

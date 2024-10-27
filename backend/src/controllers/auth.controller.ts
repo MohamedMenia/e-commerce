@@ -1,12 +1,13 @@
-import {Request, Response, NextFunction } from "express";
+import { Request, Response, NextFunction } from "express";
 import User from "../modals/User.Modal";
-import { successResponse, errorResponse } from "../utils/responseHandler";
+import { successResponse } from "../utils/responseHandler";
 import {
   generateToken,
   generateRefreshToken,
   setTokenCookies,
 } from "../services/authService";
 import { OAuth2Client } from "google-auth-library";
+import CustomError from "../utils/customError";
 
 export const login = async (
   req: Request,
@@ -18,7 +19,8 @@ export const login = async (
     const user = await User.findOne({ email });
 
     if (!user || !(await user.comparePassword(password))) {
-      return errorResponse(res, 401, "Invalid email or password");
+      const error = new CustomError("Invalid email or password", 401);
+      return next(error);
     }
 
     const accessToken = generateToken(user._id.toString());

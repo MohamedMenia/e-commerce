@@ -2,14 +2,15 @@ import express from "express";
 import helmet from "helmet";
 import mongoSanitize from "express-mongo-sanitize";
 import xss from "xss-advanced";
+import dotenv from "dotenv";
+dotenv.config();
 import connectDB from "./config/db";
 import limiter from "./config/limiter";
 import globalErrorHandler from "./middlewares/globalErrorHandler";
-import dotenv from "dotenv";
+import cookieParser from "cookie-parser";
 import userRoute from "./routes/user.route";
 
 const app = express();
-dotenv.config();
 
 // Set security HTTP headers
 app.use(helmet());
@@ -29,6 +30,8 @@ app.use(
     limit: "10kb",
   })
 );
+// Use cookie-parser middleware
+app.use(cookieParser());
 // Routes
 app.use("/user", userRoute);
 // Global error handler

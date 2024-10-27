@@ -1,14 +1,14 @@
 import jwt from "jsonwebtoken";
-import dotenv from "dotenv";
 import User from "../modals/User.Modal";
 import CustomError from "../utils/customError";
 import { Request, Response, NextFunction } from "express";
-
-dotenv.config();
-
-const JWT_SECRET = process.env.JWT_SECRET!;
-const JWT_EXPIRES_IN = "1h";
-const JWT_REFRESH_EXPIRES_IN = "30d";
+import { getUserKeyById } from "../utils/redisKeys";
+import {
+  CACHE_TTL_SECONDS,
+  JWT_SECRET,
+  JWT_EXPIRES_IN,
+  JWT_REFRESH_EXPIRES_IN,
+} from "../utils/constants";
 
 export const generateToken = (id: string) => {
   return jwt.sign({ id }, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
@@ -28,6 +28,7 @@ export const verifyAndRefreshToken = async (
   next: NextFunction
 ) => {
   try {
+    const redisClient = req.redisClient;
     const token = req.cookies.jwt;
     const refreshToken = req.cookies.refreshJwt;
 
@@ -37,23 +38,45 @@ export const verifyAndRefreshToken = async (
 
     let decoded: any;
     let user: any;
+
     if (token) {
-      decoded = jwt.verify(token, process.env.JWT_SECRET!);
-      user = await User.findById(decoded.id);
-    }
-
-    if (!user && refreshToken) {
-      decoded = jwt.verify(refreshToken, process.env.JWT_SECRET!);
-      user = await User.findById(decoded.id);
-
-      if (user) {
-        const newToken = generateToken(user._id);
-        const newRefreshToken = generateRefreshToken(user._id);
-        setTokenCookies(res, newToken, newRefreshToken);
+      try {
+        decoded = verifyToken(token);
+        const cachedUser = await redisClient.get(getUserKeyById(decoded.id));
+        if (cachedUser) {
+          user = JSON.parse(cachedUser);
+        } else {
+          user = await User.findById(decoded.id);
+        }
+      } catch (err) {
+        //return next(err);
       }
     }
 
-    if (!user) {
+    if (!user && refreshToken) {
+      try {
+        decoded = verifyToken(refreshToken);
+        const cachedUser = await redisClient.get(getUserKeyById(decoded.id));
+        if (cachedUser) {
+          user = JSON.parse(cachedUser);
+        } else {
+          user = await User.findById(decoded.id);
+        }
+      } catch (err) {
+        return next(err);
+      }
+    }
+
+    if (user) {
+      const newToken = generateToken(user._id);
+      const newRefreshToken = generateRefreshToken(user._id);
+      setTokenCookies(res, newToken, newRefreshToken);
+      await redisClient.setEx(
+        getUserKeyById(user._id),
+        CACHE_TTL_SECONDS,
+        JSON.stringify(user)
+      ); // Cache user data
+    } else {
       throw new CustomError("User not found", 401);
     }
 
