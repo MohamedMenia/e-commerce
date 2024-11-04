@@ -10,6 +10,7 @@ export interface IUser extends Document {
   imgPublicId: string;
   googleId?: string;
   role: "user" | "admin";
+  phone: string;
   comparePassword: (password: string) => Promise<boolean>;
 }
 
@@ -19,9 +20,15 @@ const userSchema = new Schema<IUser>({
   password: { type: String },
   img: { type: String },
   imgPublicId: { type: String },
-  googleId: { type: String, unique: true },
+  googleId: { type: String, unique: true, sparse: true },
   role: { type: String, enum: ["user", "admin"], default: "user" },
+  phone: { type: String, required: true, unique: true },
 });
+
+// Ensuring indexes
+userSchema.index({ email: 1 }, { unique: true });
+userSchema.index({ googleId: 1 }, { unique: true, sparse: true });
+userSchema.index({ phone: 1 }, { unique: true });
 
 // Hash password before saving
 userSchema.pre("save", async function (next) {

@@ -12,11 +12,18 @@ export const createUser = async (
   next: NextFunction
 ) => {
   try {
-    const { username, email, password } = req.body;
+    const { username, email, password, phone } = req.body;
     const img = req.file?.path;
     const imgPublicId = req.file?.filename;
     const redisClient = req.redisClient;
-    const user = new User({ username, email, password, img, imgPublicId });
+    const user = new User({
+      username,
+      email,
+      password,
+      img,
+      imgPublicId,
+      phone,
+    });
     await user.save();
     await redisClient.setEx(
       getUserKeyById(user._id),
@@ -47,6 +54,7 @@ export const updateUser = async (
       password: password || undefined,
       img: img || undefined,
       imgPublicId: imgPublicId || undefined,
+      phone: req.body.phone || undefined,
     };
 
     // Remove undefined values to avoid updating unwanted fields
@@ -72,7 +80,6 @@ export const updateUser = async (
 
     successResponse(res, user, "User updated successfully");
   } catch (error) {
-    console.log(error);
     next(error);
   }
 };
@@ -102,7 +109,7 @@ export const deleteUser = async (
     if (user.imgPublicId) {
       await deletePhoto(user.imgPublicId);
     }
-    
+
     await redisClient.del(getUserKeyById(user._id));
     await User.findByIdAndDelete(user._id);
     successResponse(res, null, "User deleted successfully");

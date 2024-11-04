@@ -1,0 +1,70 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Define styles for dark mode */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --primary-font-color: #f5f5f5;
+    --accent-font-color: #ffd700;
+    --main-bg-color: #181818;
+    --secondary-bg-color: #282828;
+    --card-bg-color: #383838;
+    --thin-border-color: #505050;
+    --accent-border-color: #ffd700;
+    --button-bg-color: #ffd700;
+    --button-text-color: #181818;
+    --icon-color: #ffd700;
+    --highlight-bg-color: #303030;
+    --input-bg-color: #282828;
+  }
+}
+/* Dark mode autofill styles */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+textarea:-webkit-autofill,
+textarea:-webkit-autofill:hover,
+textarea:-webkit-autofill:focus,
+select:-webkit-autofill,
+select:-webkit-autofill:hover,
+select:-webkit-autofill:focus {
+  border: 1px solid var(--thin-border-color);
+  -webkit-text-fill-color: var(--primary-font-color);
+  -webkit-box-shadow: 0 0 0px 1000px var(--input-bg-color) inset;
+  transition: background-color 5000s ease-in-out 0s;
+}
+body {
+  font-family: "Poppins", sans-serif;
+}
+
+/* Custom styles for react-phone-input-2 */
+.react-tel-input {
+  background-color: #2a2a2a !important; /* Background color of the input */
+  border: 1px solid #4d4d4a !important; /* Border color */
+  color: #f5f5f5 !important; /* Text color */
+}
+
+.react-tel-input .form-control {
+  background-color: #2a2a2a !important; /* Background color of the input */
+  border: none !important; /* Remove default border */
+  color: #f5f5f5 !important; /* Text color */
+}
+
+.react-tel-input .form-control:focus {
+  box-shadow: none !important; /* Remove default focus shadow */
+}
+
+.react-tel-input .flag-dropdown {
+  background-color: #2a2a2a !important; /* Dropdown background color */
+  border: none !important; /* Remove default border */
+}
+
+.react-tel-input .country-list {
+  background-color: #3e3b38 !important; /* Dropdown list background color */
+  color: #f5f5f5 !important; /* Text color */
+}
+
+.react-tel-input .country-list .country:hover {
+  background-color: #4d4d4a !important; /* Hover color */
+}
