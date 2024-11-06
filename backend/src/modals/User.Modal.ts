@@ -22,13 +22,13 @@ const userSchema = new Schema<IUser>({
   imgPublicId: { type: String },
   googleId: { type: String, unique: true, sparse: true },
   role: { type: String, enum: ["user", "admin"], default: "user" },
-  phone: { type: String, required: true, unique: true },
+  phone: { type: String, unique: true, sparse: true },
 });
 
 // Ensuring indexes
 userSchema.index({ email: 1 }, { unique: true });
 userSchema.index({ googleId: 1 }, { unique: true, sparse: true });
-userSchema.index({ phone: 1 }, { unique: true });
+userSchema.index({ phone: 1 }, { unique: true, sparse: true });
 
 // Hash password before saving
 userSchema.pre("save", async function (next) {

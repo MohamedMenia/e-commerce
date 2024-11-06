@@ -47,10 +47,9 @@ router.delete(
 );
 
 router.get(
-  "/:id",
+  "/",
   withRedisClient,
   verifyAndRefreshToken,
-  protectUser,
   userController.getUser
 );
 

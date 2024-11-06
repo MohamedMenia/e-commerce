@@ -25,8 +25,9 @@ export const userSlice = createSlice({
   reducers: {
     setUser: (state, action: PayloadAction<IUser>) => {
       state.user = action.payload;
+      state.user.isLoggedIn = true;
     },
-    restUser: (state) => {
+    resetUser: (state) => {
       state.user = {
         _id: "",
         username: "",
@@ -39,6 +40,6 @@ export const userSlice = createSlice({
     },
   },
 });
-export const { setUser } = userSlice.actions;
+export const { setUser, resetUser } = userSlice.actions;
 
 export default userSlice.reducer;

@@ -11,6 +11,7 @@ import { toast } from "react-toastify";
 import { IErrorResponse } from "@/types/genral.types";
 import handleErrors from "@/utils/handleErrors";
 import { AxiosError } from "axios";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 type FormValues = {
   username?: string;
@@ -20,6 +21,7 @@ type FormValues = {
 };
 
 export default function AuthForm() {
+  const queryClient = useQueryClient();
   const router = useRouter();
   const searchParams = useSearchParams();
   const mode = searchParams.get("mode");
@@ -31,16 +33,29 @@ export default function AuthForm() {
     control,
     formState: { errors },
     setError,
+    reset,
   } = useForm<FormValues>();
 
   const toggleMode = () => {
+    reset();
     const newMode = isLogin ? "signup" : "login";
     router.push(`/auth?mode=${newMode}`);
   };
+  const { mutate: loginHandler } = useMutation({
+    mutationFn: async (data: FormValues) => {
+      return login({ email: data.email, password: data.password });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["user"] });
+    },
+    onError: (error) => {
+      console.error("Login failed:", error);
+    },
+  });
   const onSubmit: SubmitHandler<FormValues> = async (data: FormValues) => {
     try {
       const res = isLogin
-        ? await login({ email: data.email, password: data.password })
+        ? loginHandler(data)
         : await createUser({
             username: data.username ?? "",
             email: data.email,
@@ -50,7 +65,15 @@ export default function AuthForm() {
 
       if (res.success) {
         toast.success(isLogin ? "Login successful!" : "Signup successful!");
-        router.push("/");
+
+        if (isLogin) {
+          queryClient.invalidateQueries({ queryKey: ["user"] });
+          router.push("/");
+        } else {
+          toggleMode();
+        }
+      } else {
+        toast.error(res.error.message);
       }
     } catch (err: AxiosError | unknown) {
       if (err instanceof AxiosError && err.response) {
@@ -65,6 +88,7 @@ export default function AuthForm() {
       const res = await googleLogin(response.credential as string);
       if (res.success) {
         toast.success("Google login successful!");
+        queryClient.invalidateQueries({ queryKey: ["user"] });
         router.push("/");
       } else {
         toast.error(res.error.message);

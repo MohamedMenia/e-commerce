@@ -16,7 +16,7 @@ export const createUser = async (data: IRegister) => {
   return response.data;
 };
 export const getUser = async () => {
-  const response = await axiosInstance.get("/api/user/get-user");
+  const response = await axiosInstance.get("/user");
   return response.data;
 };
 
@@ -30,7 +30,7 @@ export const deleteUser = async () => {
   return response.data;
 };
 export const logout = async () => {
-  const response = await axiosInstance.get("/api/user/logout");
+  const response = await axiosInstance.post("/user/logout");
   return response.data;
 };
 

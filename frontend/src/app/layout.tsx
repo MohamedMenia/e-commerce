@@ -1,17 +1,10 @@
-import type { Metadata } from "next";
-import "./globals.css";
-import { Poppins } from "next/font/google";
-import StoreProvider from "@/redux/storeProvider";
+import { QueryClient, dehydrate } from "@tanstack/react-query";
 import Navbar from "@/components/header/NavBar";
-import { ToastContainer } from "react-toastify";
-import 'react-toastify/dist/ReactToastify.css'
-
-const poppins = Poppins({
-  subsets: ["latin"],
-  display: "swap",
-  variable: "--font-poppins",
-  weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
-});
+import "react-toastify/dist/ReactToastify.css";
+import { getUser } from "@/axios/userAPIS";
+import "./globals.css";
+import ClientProviders from "@/components/ClientProviders";
+import { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "My Shop",
@@ -20,31 +13,22 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const queryClient = new QueryClient();
+  await queryClient.prefetchQuery({ queryKey: ["user"], queryFn: getUser });
+  const dehydratedState = dehydrate(queryClient);
+
   return (
     <html lang="en">
-      <body
-        className={`${poppins.variable} bg-main-gradient text-primaryFont antialiased`}
-      >
-        <StoreProvider>
+      <body className="bg-main-gradient text-primaryFont antialiased" suppressHydrationWarning>
+        <ClientProviders pageProps={{ dehydratedState }}>
           <Navbar />
           {children}
-          <ToastContainer
-            position="top-right"
-            autoClose={5000}
-            hideProgressBar={false}
-            newestOnTop={false}
-            closeOnClick
-            rtl={false}
-            pauseOnFocusLoss
-            draggable
-            pauseOnHover
-          />
-        </StoreProvider>
+        </ClientProviders>
       </body>
     </html>
   );
