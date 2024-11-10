@@ -29,11 +29,11 @@ router.post(
   withRedisClient,
   userController.createUser
 );
-router.put(
+router.patch(
   "/:id",
   withRedisClient,
   verifyAndRefreshToken,
-  uploadUserPhoto.single("photo"),
+  uploadUserPhoto.single("image"),
   validate(validationSchema.updateUserSchema),
   protectUser,
   userController.updateUser

@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import Link from "next/link";
 import {
   FaUserCircle,
@@ -9,30 +9,17 @@ import {
   FaSignInAlt,
 } from "react-icons/fa";
 import { RootState } from "@/redux/store";
-import { logout } from "@/axios/userAPIS";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { resetUser } from "@/redux/userSlice";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function Links() {
   const [isOpen, setIsOpen] = useState(false);
   const { user } = useSelector((state: RootState) => state.user);
   const isLoggedIn = user.isLoggedIn;
-  const queryClient = useQueryClient();
-  const dispatch = useDispatch();
 
-  const { mutate } = useMutation({
-    mutationFn: logout,
-    onSuccess: () => {
-      dispatch(resetUser());
-      queryClient.removeQueries({ queryKey: ["user"] });
-    },
-  });
-
+  const { logoutHandler } = useAuth();
   const handleLogout = () => {
-    mutate();
+    logoutHandler();
     setIsOpen(false);
-    queryClient.invalidateQueries({ queryKey: ["user"] });
-    window.location.reload();
   };
 
   return (
@@ -59,10 +46,10 @@ export default function Links() {
               onClick={() => setIsOpen(!isOpen)}
             >
               <FaUserCircle size="1.5em" />
-              <span className="ml-2 group-hover:inline md:inline">Profile</span>
+              <span className="ml-2 group-hover:inline md:inline">Account</span>
             </button>
             {isOpen && (
-              <div className="absolute right-0 mt-2 w-48 rounded-md border-thinBorder bg-secondaryBg shadow-lg text-center md:left-0 md:right-auto">
+              <div className="absolute right-0 mt-2 w-48 rounded-md border-thinBorder bg-secondaryBg text-center shadow-lg md:left-0 md:right-auto">
                 <Link
                   href="/profile"
                   className="block px-4 py-2 text-primaryFont hover:bg-cardBg md:pl-10"
@@ -76,7 +63,7 @@ export default function Links() {
                   Orders
                 </Link>
                 <button
-                  className="block px-4 py-2 text-primaryFont hover:bg-cardBg w-full text-left md:pl-10"
+                  className="block w-full px-4 py-2 text-left text-primaryFont hover:bg-cardBg md:pl-10"
                   onClick={handleLogout}
                 >
                   Logout

@@ -5,16 +5,30 @@ export type IUser = {
   img: string;
   imgPublicId: string;
   role: string;
-};
-
-export type IRegister = {
-  username: string;
-  email: string;
-  password: string;
   phone: string;
 };
+export interface IUserSlice extends IUser {
+  isLoggedIn: boolean
+  
+}
+
+
 
 export type ILogin = {
   email: string;
   password: string;
 };
+
+export type IRegisterFormValues = {
+  username?: string;
+  email: string;
+  password: string;
+  phone?: string;
+};
+
+export interface IUserProfileUpdate {
+  username?: string;
+  email?: string;
+  phone?: string;
+  password?: string;
+} 

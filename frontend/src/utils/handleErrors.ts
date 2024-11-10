@@ -19,9 +19,9 @@ interface IErrorResponse {
 // Helper function to handle errors with a generic type
 const handleErrors = <T extends FieldValues>(
   error: IErrorResponse,
-  setError: UseFormSetError<T>
+  setError: UseFormSetError<T>| null
 ) => {
-  if (error.error.details) {
+  if (error.error.details && setError) {
     error.error.details.forEach((detail: IErrorDetails) => {
         setError(detail.path[0] as Path<T>, {
             type: detail.validation,

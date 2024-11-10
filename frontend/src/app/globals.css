@@ -68,3 +68,27 @@ body {
 .react-tel-input .country-list .country:hover {
   background-color: #4d4d4a !important; /* Hover color */
 }
+.main-input {
+  border-radius: 0.25rem;
+  border: 1px solid #e5e7eb;
+  background-color: #f7f8fa;
+  padding: 0.5rem;
+  color: #1a202c;
+  outline: none;
+  box-shadow: none;
+  transition:
+    border-color 0.15s ease-in-out,
+    box-shadow 0.15s ease-in-out;
+}
+
+.main-input:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+}
+.crop-container {
+  position: relative;
+  width: 100%;
+  height: 400px;
+  background-color: #333;
+  color: #fff;
+}

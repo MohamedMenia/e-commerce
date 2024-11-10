@@ -6,22 +6,10 @@ import "react-phone-input-2/lib/style.css";
 import FormInput from "./_component/FormInput";
 import { CredentialResponse } from "@react-oauth/google";
 import GoogleLoginButton from "./_component/GoogleLoginButton";
-import { createUser, googleLogin, login } from "@/axios/userAPIS";
-import { toast } from "react-toastify";
-import { IErrorResponse } from "@/types/genral.types";
-import handleErrors from "@/utils/handleErrors";
-import { AxiosError } from "axios";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-
-type FormValues = {
-  username?: string;
-  email: string;
-  password: string;
-  phone?: string;
-};
+import { IRegisterFormValues } from "@/types/user.types";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function AuthForm() {
-  const queryClient = useQueryClient();
   const router = useRouter();
   const searchParams = useSearchParams();
   const mode = searchParams.get("mode");
@@ -34,73 +22,32 @@ export default function AuthForm() {
     formState: { errors },
     setError,
     reset,
-  } = useForm<FormValues>();
+  } = useForm<IRegisterFormValues>();
 
   const toggleMode = () => {
     reset();
     const newMode = isLogin ? "signup" : "login";
     router.push(`/auth?mode=${newMode}`);
   };
-  const { mutate: loginHandler } = useMutation({
-    mutationFn: async (data: FormValues) => {
-      return login({ email: data.email, password: data.password });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["user"] });
-    },
-    onError: (error) => {
-      console.error("Login failed:", error);
-    },
+  const { loginHandler, createUserHandler, googleLoginHandler } = useAuth({
+    setError,
   });
-  const onSubmit: SubmitHandler<FormValues> = async (data: FormValues) => {
-    try {
-      const res = isLogin
-        ? loginHandler(data)
-        : await createUser({
-            username: data.username ?? "",
-            email: data.email,
-            password: data.password,
-            phone: data.phone ?? "",
-          });
-
-      if (res.success) {
-        toast.success(isLogin ? "Login successful!" : "Signup successful!");
-
-        if (isLogin) {
-          queryClient.invalidateQueries({ queryKey: ["user"] });
-          router.push("/");
-        } else {
-          toggleMode();
-        }
-      } else {
-        toast.error(res.error.message);
-      }
-    } catch (err: AxiosError | unknown) {
-      if (err instanceof AxiosError && err.response) {
-        const error = err.response.data as IErrorResponse;
-        handleErrors(error, setError);
-      }
+  const onSubmit: SubmitHandler<IRegisterFormValues> = async (
+    data: IRegisterFormValues,
+  ) => {
+    if (isLogin) {
+      loginHandler(data);
+    } else {
+      createUserHandler(data);
     }
   };
 
   const responseGoogle = async (response: CredentialResponse) => {
-    try {
-      const res = await googleLogin(response.credential as string);
-      if (res.success) {
-        toast.success("Google login successful!");
-        queryClient.invalidateQueries({ queryKey: ["user"] });
-        router.push("/");
-      } else {
-        toast.error(res.error.message);
-      }
-    } catch (err) {
-      const error = err as IErrorResponse;
-      handleErrors(error, setError);
-    }
+    googleLoginHandler(response.credential as string);
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-mainBg p-4 text-primaryFont">
+    <div className="flex items-center justify-center p-4 text-primaryFont">
       <div className="w-full max-w-md space-y-6 rounded-lg bg-cardBg p-8 shadow-lg">
         <h2 className="text-center text-3xl font-bold">
           {isLogin ? "Login" : "Sign Up"}

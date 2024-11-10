@@ -9,6 +9,9 @@ import { useState } from "react";
 import StoreProvider from "@/redux/storeProvider";
 import FetchUser from "@/components/FetchUser";
 import { ToastContainer } from "react-toastify";
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+import "react-toastify/dist/ReactToastify.css";
+
 
 interface ClientProvidersProps {
   pageProps: { dehydratedState: DehydratedState };
@@ -20,6 +23,7 @@ const ClientProviders = ({ pageProps, children }: ClientProvidersProps) => {
 
   return (
     <QueryClientProvider client={queryClient}>
+      <ReactQueryDevtools initialIsOpen={false} />
       <HydrationBoundary state={pageProps?.dehydratedState}>
         <StoreProvider>
           <FetchUser />

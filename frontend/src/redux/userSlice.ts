@@ -1,14 +1,7 @@
 import { PayloadAction, createSlice } from "@reduxjs/toolkit";
-interface IUser {
-  _id: string;
-  username: string;
-  email: string;
-  img: string;
-  imgPublicId: string;
-  googleId?: string;
-  role: "user" | "admin";
-  isLoggedIn: boolean;
-}
+import { IUserSlice } from "../types/user.types";
+
+
 export const userSlice = createSlice({
   name: "user",
   initialState: {
@@ -19,11 +12,12 @@ export const userSlice = createSlice({
       img: "",
       imgPublicId: "",
       role: "user",
+      phone: "",
       isLoggedIn: false,
-    } as IUser,
+    } as IUserSlice,
   },
   reducers: {
-    setUser: (state, action: PayloadAction<IUser>) => {
+    setUser: (state, action: PayloadAction<IUserSlice>) => {
       state.user = action.payload;
       state.user.isLoggedIn = true;
     },
@@ -35,6 +29,7 @@ export const userSlice = createSlice({
         img: "",
         imgPublicId: "",
         role: "user",
+        phone: "",
         isLoggedIn: false,
       };
     },

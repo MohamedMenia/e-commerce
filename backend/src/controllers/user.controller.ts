@@ -42,7 +42,7 @@ export const updateUser = async (
   next: NextFunction
 ) => {
   try {
-    const { username, email, password } = req.body;
+    const { username, email, password , phone} = req.body;
     const img = req.file?.path;
     const imgPublicId = req.file?.filename;
     const redisClient = req.redisClient;
@@ -54,7 +54,7 @@ export const updateUser = async (
       password: password || undefined,
       img: img || undefined,
       imgPublicId: imgPublicId || undefined,
-      phone: req.body.phone || undefined,
+      phone: phone || undefined,
     };
 
     // Remove undefined values to avoid updating unwanted fields

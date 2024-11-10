@@ -1,5 +1,5 @@
 import axiosInstance from "./axiosInstance";
-import { IUser, ILogin, IRegister } from "@/types/user.types";
+import { ILogin, IRegisterFormValues, IUserProfileUpdate } from "@/types/user.types";
 
 export const googleLogin = async (token: string) => {
   const response = await axiosInstance.post("/user/google-login", {
@@ -11,7 +11,7 @@ export const login = async (data: ILogin) => {
   const response = await axiosInstance.post("/user/login", data);
   return response.data;
 };
-export const createUser = async (data: IRegister) => {
+export const createUser = async (data: IRegisterFormValues) => {
   const response = await axiosInstance.post("/user", data);
   return response.data;
 };
@@ -20,8 +20,8 @@ export const getUser = async () => {
   return response.data;
 };
 
-export const updateUser = async (data: IUser) => {
-  const response = await axiosInstance.put("/api/user/update-user", data);
+export const updateUser = async (data: IUserProfileUpdate| FormData, id : string) => {
+  const response = await axiosInstance.patch(`/user/${id}`, data);
   return response.data;
 };
 
@@ -33,4 +33,3 @@ export const logout = async () => {
   const response = await axiosInstance.post("/user/logout");
   return response.data;
 };
-

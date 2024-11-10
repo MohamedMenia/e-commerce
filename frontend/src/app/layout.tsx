@@ -1,10 +1,9 @@
 import { QueryClient, dehydrate } from "@tanstack/react-query";
 import Navbar from "@/components/header/NavBar";
-import "react-toastify/dist/ReactToastify.css";
 import { getUser } from "@/axios/userAPIS";
-import "./globals.css";
 import ClientProviders from "@/components/ClientProviders";
 import { Metadata } from "next";
+import "./globals.css";
 
 export const metadata: Metadata = {
   title: "My Shop",
@@ -24,7 +23,10 @@ export default async function RootLayout({
 
   return (
     <html lang="en">
-      <body className="bg-main-gradient text-primaryFont antialiased" suppressHydrationWarning>
+      <body
+        className="min-h-screen bg-main-gradient text-primaryFont antialiased"
+        suppressHydrationWarning
+      >
         <ClientProviders pageProps={{ dehydratedState }}>
           <Navbar />
           {children}

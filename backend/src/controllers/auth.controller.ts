@@ -18,9 +18,20 @@ export const login = async (
     const { email, password } = req.body;
     const user = await User.findOne({ email });
 
-    if (!user || !(await user.comparePassword(password))) {
-      const error = new CustomError("Invalid email or password", 401);
-      return next(error);
+    if (!user) {
+      throw new CustomError("Invalid email or password", 401);
+    }
+
+    // If user registered with Google
+    if (user.googleId && !user.password) {
+      throw new CustomError(
+        "This account is registered with Google. Please use Google login.",
+        400
+      );
+    }
+
+    if (!(await user.comparePassword(password))) {
+      throw new CustomError("Invalid email or password", 401);
     }
 
     const accessToken = generateToken(user._id.toString());
