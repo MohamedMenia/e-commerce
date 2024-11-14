@@ -6,7 +6,10 @@ import * as validationSchema from "../validations/user.validation";
 import { uploadUserPhoto } from "../config/multerConfig";
 import { verifyAndRefreshToken } from "../services/authService";
 import { withRedisClient } from "../middlewares/redisMiddleware";
-import {protectUser} from "../middlewares/user.middleware";
+import {
+  checkPasswordAndUpdate,
+  protectUser,
+} from "../middlewares/user.middleware";
 const router = Router();
 
 // Auth Routes
@@ -34,8 +37,9 @@ router.patch(
   withRedisClient,
   verifyAndRefreshToken,
   uploadUserPhoto.single("image"),
-  validate(validationSchema.updateUserSchema),
   protectUser,
+  checkPasswordAndUpdate,
+  validate(validationSchema.updateUserSchema),
   userController.updateUser
 );
 router.delete(
@@ -46,11 +50,6 @@ router.delete(
   userController.deleteUser
 );
 
-router.get(
-  "/",
-  withRedisClient,
-  verifyAndRefreshToken,
-  userController.getUser
-);
+router.get("/", withRedisClient, verifyAndRefreshToken, userController.getUser);
 
 export default router;

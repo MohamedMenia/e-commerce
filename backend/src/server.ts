@@ -10,6 +10,8 @@ import limiter from "./config/limiter";
 import globalErrorHandler from "./middlewares/globalErrorHandler";
 import cookieParser from "cookie-parser";
 import userRoute from "./routes/user.route";
+import http from "http";
+import setupSocket from "./config/socketConfig";
 
 const app = express();
 
@@ -49,7 +51,10 @@ app.use(globalErrorHandler);
 // Database connection
 connectDB()
   .then(() => {
-    const server = app.listen(process.env.PORT || 5000, () => {
+    const server = http.createServer(app);
+    // Setup Socket.IO
+    const io = setupSocket(server);
+    server.listen(process.env.PORT || 5000, () => {
       console.log(`Server running on port ${process.env.PORT || 8000}`);
     });
 

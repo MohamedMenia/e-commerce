@@ -1,13 +1,12 @@
 "use client";
-import { useForm, Controller, SubmitHandler } from "react-hook-form";
+import { useForm, SubmitHandler, Control, FieldValues } from "react-hook-form";
 import { useRouter, useSearchParams } from "next/navigation";
-import PhoneInput from "react-phone-input-2";
-import "react-phone-input-2/lib/style.css";
 import FormInput from "./_component/FormInput";
 import { CredentialResponse } from "@react-oauth/google";
 import GoogleLoginButton from "./_component/GoogleLoginButton";
 import { IRegisterFormValues } from "@/types/user.types";
 import { useAuth } from "@/hooks/useAuth";
+import PhoneInputField from "@/components/PhoneInputField";
 
 export default function AuthForm() {
   const router = useRouter();
@@ -68,26 +67,13 @@ export default function AuthForm() {
                 <label htmlFor="phone" className="block text-sm font-medium">
                   Phone Number
                 </label>
-                <Controller
+                <PhoneInputField
                   name="phone"
-                  control={control}
+                  control={control as unknown as Control<FieldValues>}
                   rules={{ required: "Phone number is required" }}
-                  render={({ field }) => (
-                    <PhoneInput
-                      {...field}
-                      country={"eg"}
-                      containerClass="w-full rounded border border-thinBorder bg-inputBg"
-                      buttonClass="border-none"
-                      inputClass="bg-inputBg w-full p-2 rounded focus:ring-2 focus:ring-accentFont"
-                      dropdownClass="bg-cardBg text-primaryFont"
-                    />
-                  )}
+                  errors={errors}
+                  defaultCountry="eg"
                 />
-                {errors.phone && (
-                  <span className="text-sm text-red-500">
-                    {errors.phone.message}
-                  </span>
-                )}
               </div>
             </>
           )}

@@ -1,27 +1,34 @@
-import { Schema, model, Document } from "mongoose";
+import mongoose, { Schema, Document, Model } from "mongoose";
 import bcrypt from "bcryptjs";
 
 export interface IUser extends Document {
-  _id: string;
+  _id: mongoose.Schema.Types.ObjectId;
   username: string;
   email: string;
   password?: string; // Optional to handle Google login
-  img: string;
-  imgPublicId: string;
+  img: {
+    link: string;
+    publicId: string;
+  };
   googleId?: string;
-  role: "user" | "admin";
+  role: "user" | "admin" | "seller";
   phone: string;
-  comparePassword: (password: string) => Promise<boolean>;
+  comparePassword(password: string): Promise<boolean>;
+}
+interface UserModel extends Model<IUser> {
+  comparePassword(userId: string, password: string): Promise<boolean>;
 }
 
 const userSchema = new Schema<IUser>({
   username: { type: String, required: true },
   email: { type: String, required: true, unique: true },
   password: { type: String },
-  img: { type: String },
-  imgPublicId: { type: String },
+  img: {
+    link: { type: String },
+    publicId: { type: String },
+  },
   googleId: { type: String, unique: true, sparse: true },
-  role: { type: String, enum: ["user", "admin"], default: "user" },
+  role: { type: String, enum: ["user", "admin", "seller"], default: "user" },
   phone: { type: String, unique: true, sparse: true },
 });
 
@@ -50,10 +57,9 @@ userSchema.pre("findOneAndUpdate", async function (next) {
   next();
 });
 
-userSchema.methods.comparePassword = function (
-  password: string
-): Promise<boolean> {
+userSchema.methods.comparePassword = function (password: string) {
   return bcrypt.compare(password, this.password);
 };
 
-export default model<IUser>("User", userSchema);
+const User = mongoose.model<IUser, UserModel>("User", userSchema);
+export default User;

@@ -34,7 +34,7 @@ export const useAuth = <T extends FieldValues>({
     mutationFn: async (data: IRegisterFormValues) =>
       login({ email: data.email, password: data.password }),
     onSuccess: (data) => {
-      dispatch(setUser(data)); // Set the user state in Redux
+      dispatch(setUser({ ...data, isLoggedIn: true }));
       queryClient.invalidateQueries({ queryKey: ["user"] });
       toast.success("Login successful!");
       router.push("/");
@@ -51,7 +51,7 @@ export const useAuth = <T extends FieldValues>({
     mutationFn: async (credential: string) => googleLogin(credential),
     onSuccess: (data) => {
       if (data.success) {
-        dispatch(setUser(data));
+        dispatch(setUser({ ...data, isLoggedIn: true }));
         // Set the user state in Redux
         queryClient.invalidateQueries({ queryKey: ["user"] });
         toast.success("Google login successful!");
@@ -149,9 +149,10 @@ export const useUser = () => {
   // Manage user state based on query results
   useEffect(() => {
     if (fetchedUser && !isLoading && !error) {
-      dispatch(setUser(fetchedUser.data));
+      dispatch(setUser({ ...fetchedUser.data, isLoggedIn: true }));
     } else if (error) {
       dispatch(resetUser());
     }
   }, [fetchedUser, isLoading, error, dispatch]);
+  return fetchedUser;
 };

@@ -1,10 +1,10 @@
 import { Request, Response, NextFunction } from "express";
-import User from "../modals/User.Modal";
+import User from "../models/User.Modal";
 import { successResponse } from "../utils/responseHandler";
-import cloudinary from "../config/cloudinary";
 import { getUserKeyById } from "../utils/redisKeys";
 import { CACHE_TTL_SECONDS } from "../utils/constants";
 import { deletePhoto } from "../config/multerConfig";
+import { emitUserUpdate } from "../config/socketConfig";
 
 export const createUser = async (
   req: Request,
@@ -13,20 +13,21 @@ export const createUser = async (
 ) => {
   try {
     const { username, email, password, phone } = req.body;
-    const img = req.file?.path;
-    const imgPublicId = req.file?.filename;
+    const img = {
+      link: req.file?.path,
+      publicId: req.file?.filename,
+    };
     const redisClient = req.redisClient;
     const user = new User({
       username,
       email,
       password,
       img,
-      imgPublicId,
       phone,
     });
     await user.save();
     await redisClient.setEx(
-      getUserKeyById(user._id),
+      getUserKeyById(user._id.toString()),
       CACHE_TTL_SECONDS,
       JSON.stringify(user)
     );
@@ -42,9 +43,11 @@ export const updateUser = async (
   next: NextFunction
 ) => {
   try {
-    const { username, email, password , phone} = req.body;
-    const img = req.file?.path;
-    const imgPublicId = req.file?.filename;
+    const { username, email, password, phone } = req.body;
+    const img = {
+      link: req.file?.path,
+      publicId: req.file?.filename,
+    };
     const redisClient = req.redisClient;
 
     // Gather updated fields
@@ -53,7 +56,6 @@ export const updateUser = async (
       email: email || undefined,
       password: password || undefined,
       img: img || undefined,
-      imgPublicId: imgPublicId || undefined,
       phone: phone || undefined,
     };
 
@@ -68,15 +70,16 @@ export const updateUser = async (
     });
 
     // If updating image, delete old image
-    if (req.user.imgPublicId && imgPublicId) {
-      await deletePhoto(req.user.imgPublicId);
+    if (user?.img?.publicId && img?.publicId) {
+      await deletePhoto(user.img.publicId);
     }
 
     await redisClient.setEx(
-      getUserKeyById(req.user._id),
+      getUserKeyById(req.user._id.toString()),
       CACHE_TTL_SECONDS,
       JSON.stringify(user)
     );
+    emitUserUpdate(user?._id.toString() || "");
 
     successResponse(res, user, "User updated successfully");
   } catch (error) {
@@ -106,11 +109,11 @@ export const deleteUser = async (
     const user = req.user;
     const redisClient = req.redisClient;
 
-    if (user.imgPublicId) {
-      await deletePhoto(user.imgPublicId);
+    if (user.img.link) {
+      await deletePhoto(user.img.publicId);
     }
 
-    await redisClient.del(getUserKeyById(user._id));
+    await redisClient.del(getUserKeyById(user._id.toString()));
     await User.findByIdAndDelete(user._id);
     successResponse(res, null, "User deleted successfully");
   } catch (error) {

@@ -14,12 +14,13 @@ export const userSlice = createSlice({
       role: "user",
       phone: "",
       isLoggedIn: false,
+      state: "Loading",
     } as IUserSlice,
   },
   reducers: {
     setUser: (state, action: PayloadAction<IUserSlice>) => {
       state.user = action.payload;
-      state.user.isLoggedIn = true;
+      state.user.state = "fetched";
     },
     resetUser: (state) => {
       state.user = {
@@ -31,6 +32,7 @@ export const userSlice = createSlice({
         role: "user",
         phone: "",
         isLoggedIn: false,
+        state: "fetched",
       };
     },
   },

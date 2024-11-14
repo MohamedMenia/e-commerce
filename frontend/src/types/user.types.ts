@@ -9,7 +9,7 @@ export type IUser = {
 };
 export interface IUserSlice extends IUser {
   isLoggedIn: boolean
-  
+  state: string
 }
 
 
@@ -30,5 +30,7 @@ export interface IUserProfileUpdate {
   username?: string;
   email?: string;
   phone?: string;
-  password?: string;
+  oldPassword?: string;
+  newPassword?: string;
+  confirmPassword?: string;
 } 

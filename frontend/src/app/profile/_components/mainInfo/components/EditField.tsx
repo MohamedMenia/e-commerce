@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { FaEdit, FaSave, FaTimes } from "react-icons/fa";
 import { useAuth } from "@/hooks/useAuth";
+import PhoneInputField from "@/components/PhoneInputField";
 
 interface EditFieldProps {
   label: string;
@@ -10,18 +11,28 @@ interface EditFieldProps {
   value: string;
   rules?: object;
   userId: string;
+  isPhoneInput?: boolean;
 }
 
-const EditField = ({ label, name, value, rules, userId }: EditFieldProps) => {
+const EditField = ({
+  label,
+  name,
+  value,
+  rules,
+  userId,
+  isPhoneInput = false,
+}: EditFieldProps) => {
   const {
     register,
     handleSubmit,
     reset,
     setValue,
+    control,
     formState: { errors },
   } = useForm({ defaultValues: { [name]: value } });
   const [isEditing, setIsEditing] = useState(false);
   const { updateProfile } = useAuth();
+
   useEffect(() => {
     setValue(name, value);
   }, [value, name, setValue]);
@@ -56,13 +67,23 @@ const EditField = ({ label, name, value, rules, userId }: EditFieldProps) => {
       {isEditing ? (
         <form
           onSubmit={handleSubmit(handleSave)}
-          className="flex items-center space-x-2"
+          className="flex items-center space-x-2  w-full max-w-60"
         >
-          <input
-            type="text"
-            className="main-input w-full max-w-60"
-            {...register(name, rules)}
-          />
+          {isPhoneInput ? (
+            <PhoneInputField
+              name={name}
+              control={control}
+              rules={rules}
+              errors={errors}
+              defaultCountry="eg"
+            />
+          ) : (
+            <input
+              type="text"
+              className="main-input"
+              {...register(name, rules)}
+            />
+          )}
           <button type="submit" className="text-green-500 hover:text-green-700">
             <FaSave />
           </button>

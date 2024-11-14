@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import User from "../modals/User.Modal";
+import User from "../models/User.Modal";
 import { successResponse } from "../utils/responseHandler";
 import {
   generateToken,
