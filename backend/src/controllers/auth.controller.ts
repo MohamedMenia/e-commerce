@@ -81,8 +81,8 @@ export const googleLogin = async (
       await user.save();
     }
 
-    const accessToken = generateToken(user._id);
-    const refreshToken = generateRefreshToken(user._id);
+    const accessToken = generateToken(user._id.toString());
+    const refreshToken = generateRefreshToken(user._id.toString());
     setTokenCookies(res, accessToken, refreshToken);
 
     successResponse(res, { user }, "Google login successful");

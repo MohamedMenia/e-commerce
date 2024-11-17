@@ -1,4 +1,5 @@
 import mongoose, { Schema, Document, model } from "mongoose";
+import Seller from "./Seller.Model";
 
 export interface IProduct extends Document {
   _id: mongoose.Schema.Types.ObjectId;
@@ -18,11 +19,7 @@ export interface IProduct extends Document {
   brand: string;
   category: mongoose.Schema.Types.ObjectId[];
   stock: number;
-  sellers: {
-    seller: string; // Reference to the seller's ID
-    price: number;
-    stock: number;
-  }[];
+  sellers: mongoose.Schema.Types.ObjectId[]; // Reference to the seller's IDs
   reviews: mongoose.Schema.Types.ObjectId[];
   ratingAvg: number;
   reviewCount: number;
@@ -63,16 +60,11 @@ const productSchema = new Schema<IProduct>(
     minPrice: { type: Number, required: true },
     sellers: [
       {
-        seller: {
-          type: mongoose.Schema.Types.ObjectId,
-          ref: "User",
-          required: true,
-        },
-        price: { type: Number, required: true },
-        stock: { type: Number, required: true },
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Seller",
+        required: true,
       },
     ],
-
     ratingAvg: { type: Number, default: 0 },
     reviewCount: { type: Number, default: 0 },
     reviews: [{ type: mongoose.Schema.Types.ObjectId, ref: "Review" }],
@@ -87,6 +79,7 @@ const productSchema = new Schema<IProduct>(
   },
   { timestamps: true }
 );
+
 // Indexes
 productSchema.index({ name: 1 }, { unique: true });
 productSchema.index({ category: 1 });
@@ -103,19 +96,28 @@ productSchema.index({
 });
 
 // Calculate minPrice and stock before saving
-productSchema.pre("save", function (next) {
+productSchema.pre("save", async function (next) {
   const product = this as IProduct;
 
   if (product.sellers && product.sellers.length > 0) {
     let minPrice = Infinity;
     let totalStock = 0;
-    product.sellers.forEach((seller) => {
-      if (seller.price < minPrice) {
-        minPrice = seller.price;
-      }
-      totalStock += seller.stock;
+  
+    // Fetch seller details from the Seller collection
+    const sellers = await Seller.find({ _id: { $in: product.sellers } });
+  
+    sellers.forEach((seller) => {
+      seller.products.forEach((productInfo) => {
+        if (productInfo.product.toString() === product._id.toString()) {
+          if (productInfo.price < minPrice) {
+            minPrice = productInfo.price;
+          }
+          totalStock += productInfo.stock;
+        }
+      });
     });
-    product.minPrice = minPrice;
+  
+    product.minPrice = minPrice === Infinity ? 0 : minPrice;
     product.stock = totalStock;
   } else {
     product.minPrice = 0;

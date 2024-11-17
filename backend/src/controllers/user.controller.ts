@@ -1,10 +1,11 @@
 import { Request, Response, NextFunction } from "express";
-import User from "../models/User.Modal";
+import User, { IUser } from "../models/User.Modal";
 import { successResponse } from "../utils/responseHandler";
 import { getUserKeyById } from "../utils/redisKeys";
 import { CACHE_TTL_SECONDS } from "../utils/constants";
 import { deletePhoto } from "../config/multerConfig";
 import { emitUserUpdate } from "../config/socketConfig";
+import Seller, { ISeller } from "../models/productModals/Seller.Model";
 
 export const createUser = async (
   req: Request,
@@ -12,7 +13,7 @@ export const createUser = async (
   next: NextFunction
 ) => {
   try {
-    const { username, email, password, phone } = req.body;
+    const { username, email, password, phone, role } = req.body;
     const img = {
       link: req.file?.path,
       publicId: req.file?.filename,
@@ -24,6 +25,7 @@ export const createUser = async (
       password,
       img,
       phone,
+      role,
     });
     await user.save();
     await redisClient.setEx(
@@ -31,6 +33,10 @@ export const createUser = async (
       CACHE_TTL_SECONDS,
       JSON.stringify(user)
     );
+    // If the role is seller, add the seller document
+    if (role === "seller") {
+      await Seller.create({ user: user._id });
+    }
     successResponse(res, user, "User created successfully");
   } catch (error) {
     next(error);
@@ -93,8 +99,19 @@ export const getUser = async (
   next: NextFunction
 ) => {
   try {
-    const user = req.user;
-    successResponse(res, user, "User retrieved successfully");
+    const user = req.user as IUser;
+    const response: IUser & { products?: ISeller["products"] } = {
+      ...user.toObject(),
+    };
+    if (user.role === "seller") {
+      const sellerData = await Seller.findOne({ user: user._id }).populate(
+        "products.product"
+      );
+      if (sellerData) {
+        response.products = sellerData.products;
+      }
+    }
+    successResponse(res, response, "User retrieved successfully");
   } catch (error) {
     next(error);
   }
@@ -111,6 +128,9 @@ export const deleteUser = async (
 
     if (user.img.link) {
       await deletePhoto(user.img.publicId);
+    }
+    if (user.role === "seller") {
+      await Seller.findOneAndDelete({ user: user._id });
     }
 
     await redisClient.del(getUserKeyById(user._id.toString()));

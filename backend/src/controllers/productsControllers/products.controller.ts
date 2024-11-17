@@ -7,6 +7,7 @@ import {
   deleteProductImages,
 } from "../../utils/handleProductImages";
 import { getProductKeyById, getProductListKey } from "../../utils/redisKeys";
+import { CACHE_TTL_SECONDS } from "../../utils/constants";
 
 export const getProducts = async (
   req: Request,
@@ -34,7 +35,11 @@ export const getProducts = async (
       features.query,
     ]);
     const response = { products, totalPages };
-    await req.redisClient.setEx(cacheKey, 3600, JSON.stringify(response));
+    await req.redisClient.setEx(
+      cacheKey,
+      CACHE_TTL_SECONDS,
+      JSON.stringify(response)
+    );
     successResponse(res, response, "Products retrieved successfully");
   } catch (error) {
     next(error);
@@ -95,7 +100,7 @@ export const updateProduct = async (
       const cacheKey = getProductKeyById(req.params.id);
       await req.redisClient.setEx(
         cacheKey,
-        3600,
+        CACHE_TTL_SECONDS,
         JSON.stringify(updatedProduct)
       );
     }
