@@ -22,7 +22,7 @@ export const productSchema = z.object({
       seller: z.string().min(1, "Seller ID is required"),
       ...priceStockSchema.shape,
     })
-  ),
+  ).optional(),
   reviews: z
     .array(
       z.object({

@@ -25,15 +25,6 @@ export const verifyToken = (token: string) => {
   return jwt.verify(token, JWT_SECRET);
 };
 
-const toMongooseUser = (plainUser: { _id: string }) => {
-  if (plainUser) {
-    const mongooseUser = new User(plainUser);
-    mongooseUser._id = plainUser._id;
-    return mongooseUser;
-  }
-  return null;
-};
-
 export const verifyAndRefreshToken = async (
   req: Request,
   res: Response,
@@ -56,7 +47,7 @@ export const verifyAndRefreshToken = async (
         decoded = verifyToken(token);
         const cachedUser = await redisClient.get(getUserKeyById(decoded.id));
         if (cachedUser) {
-          user = toMongooseUser(JSON.parse(cachedUser));
+          user = JSON.parse(cachedUser) as typeof User;
         } else {
           user = await User.findById(decoded.id);
         }
@@ -70,7 +61,7 @@ export const verifyAndRefreshToken = async (
         decoded = verifyToken(refreshToken);
         const cachedUser = await redisClient.get(getUserKeyById(decoded.id));
         if (cachedUser) {
-          user = toMongooseUser(JSON.parse(cachedUser));
+          user = JSON.parse(cachedUser) as typeof User;
         } else {
           user = await User.findById(decoded.id);
         }

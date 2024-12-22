@@ -10,6 +10,7 @@ import limiter from "./config/limiter";
 import globalErrorHandler from "./middlewares/globalErrorHandler";
 import cookieParser from "cookie-parser";
 import userRoute from "./routes/user.route";
+import productRoute from "./routes/product.route";
 import http from "http";
 import setupSocket from "./config/socketConfig";
 
@@ -45,6 +46,8 @@ app.use(
 app.use(cookieParser());
 // Routes
 app.use("/user", userRoute);
+app.use("/products",productRoute );
+
 // Global error handler
 app.use(globalErrorHandler);
 

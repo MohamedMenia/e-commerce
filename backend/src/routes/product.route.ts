@@ -3,13 +3,16 @@ import * as productController from "../controllers/productsControllers/products.
 import { uploadProductPhoto } from "../config/multerConfig";
 import { checkProductId, cacheProduct } from "../middlewares/product.middlware";
 import { withRedisClient } from "../middlewares/redisMiddleware";
+import { validate } from "../middlewares/validat.middleware";
+import { productSchema } from "../validations/Product.validation";
 
 const router = express.Router();
 
 router
-  .route("/products")
+  .route("/")
   .get(productController.getProducts)
   .post(
+    validate(productSchema),
     uploadProductPhoto.fields([
       { name: "main", maxCount: 1 },
       { name: "sub", maxCount: 5 },
@@ -18,7 +21,7 @@ router
   );
 
 router
-  .route("/products/:id")
+  .route("/:id")
   .get(
     withRedisClient,
     checkProductId,

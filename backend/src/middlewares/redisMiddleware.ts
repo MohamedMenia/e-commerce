@@ -10,6 +10,6 @@ export const withRedisClient = async (
     req.redisClient = await initRedisClient();
     next();
   } catch (error) {
-    next(error);
+    next();
   }
 };

@@ -12,7 +12,6 @@ const FetchUser = () => {
   const queryClient = useQueryClient();
   useEffect(() => {
     if (user && user._id) {
-      console.log(`Joining room: ${user._id}`);
       // Join the user to their specific room
       socket.emit("joinRoom", user._id);
 

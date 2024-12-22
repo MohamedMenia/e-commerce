@@ -62,7 +62,6 @@ const productSchema = new Schema<IProduct>(
       {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Seller",
-        required: true,
       },
     ],
     ratingAvg: { type: Number, default: 0 },
